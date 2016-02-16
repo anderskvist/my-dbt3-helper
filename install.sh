@@ -12,7 +12,7 @@ case "${DIST}" in
 esac
 
 apt-get update
-apt-get install -y git automake autoconf r-base sysstat make gcc cmake
+apt-get install -y git automake autoconf r-base sysstat make gcc cmake ghostscript
 
 cat <<EOF> /etc/cron.d/dht3-sysstat
 PATH=/usr/lib/sysstat:/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -28,6 +28,6 @@ cd /opt/osdldbt-dbt3
 make
 make install
 
-git clone git://git.code.sf.net/p/osdldbt/dbttools /opt/osdldbt-dbttools
+git clone https://github.com/mw2q/dbttools.git /opt/dbttools
 cmake CMakeLists.txt
 make install DESTDIR=/usr/local
