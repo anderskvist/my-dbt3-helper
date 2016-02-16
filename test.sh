@@ -7,7 +7,7 @@ else
 fi
 
 # DYNAMICS
-export DSS_RESULTS=/tmp/results
+export DSS_RESULTS=/tmp/results-${FACTOR}/
 export DSS_PATH=/tmp/dss_path/
 
 # STATICS
