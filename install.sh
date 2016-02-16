@@ -4,7 +4,6 @@ DIST=$(lsb_release -i -s)
 
 case "${DIST}" in
     Ubuntu)
-	echo "Ubuntu"
 	;;
     *)
 	echo "Unsupported dist: ${DIST}"
@@ -12,6 +11,7 @@ case "${DIST}" in
 	;;
 esac
 
+apt-get update
 apt-get install -y git automake autoconf r-base sysstat make gcc
 
 cat <<EOF> /etc/cron.d/dht3-sysstat
