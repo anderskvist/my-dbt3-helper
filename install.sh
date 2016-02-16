@@ -29,5 +29,6 @@ make
 make install
 
 git clone https://github.com/mw2q/dbttools.git /opt/dbttools
+cd /opt/dbttools
 cmake CMakeLists.txt
 make install DESTDIR=/usr/local
