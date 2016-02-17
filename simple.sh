@@ -82,7 +82,10 @@ echo "Facts:"
 echo "Number of rows inserted: ${ROWS}"
 echo "Parallel inserts: ${PARALLEL}"
 echo "Number of chunks: ${CHUNKS}"
+echo -n "Using prepared statements: "
+[[ ${PREPAREDSTATEMENTS} -ne 0 ]] && echo "true" || echo "false"
 echo
+
 INTEGERTIME=$(echo ${INTEGEREND}-${INTEGERSTART}|bc -l)
 VARCHARTIME=$(echo ${VARCHAREND}-${VARCHARSTART}|bc -l)
 
