@@ -53,7 +53,7 @@ for I in $(seq 1 ${ROWS}); do
     {
 	if [ ${PREPAREDSTATEMENTS} -ne 0 ]; then
 	    echo "SET @a = ${TEXT};"
-	    echo "EXECUTE stmt1 USING @a;"
+	    echo "EXECUTE stmt1 USING '@a';"
 	else
 	    echo "INSERT INTO test_varchar (val) VALUES ('${TEXT}');"
 	fi
