@@ -27,6 +27,7 @@ echo "done"
 echo_ts "Creating tables..."
 mysql ${DB} -e "CREATE TABLE test_integer (id INTEGER AUTO_INCREMENT PRIMARY KEY, val INTEGER);"
 mysql ${DB} -e "CREATE TABLE test_varchar (id INTEGER AUTO_INCREMENT PRIMARY KEY, val VARCHAR(100));"
+mysql ${DB} -e "CREATE TABLE test_transaction (id INTEGER AUTO_INCREMENT PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100));"
 echo "done"
 
 if [ ${PREPAREDSTATEMENTS} -ne 0 ]; then
@@ -58,6 +59,14 @@ for I in $(seq 1 ${ROWS}); do
 	    echo "INSERT INTO test_varchar (val) VALUES ('${TEXT}');"
 	fi
     } >> ${TMPVARCHAR}_$((${I}%${CHUNKS}))
+
+    {
+	echo "START TRANSACTION;";
+	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "SET @VAL_VARCHAR = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "INSERT INTO test_transaction (val_integer,val_varchar) VALUES (@VAL_INTEGER,@VAL_VARCHAR);"
+	echo "COMMIT;"
+    } >> ${TMPTRANSACTION}_$((${I}%${CHUNKS}))
 done
 echo "done"
 
@@ -77,6 +86,12 @@ ls -1 ${TMPVARCHAR}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
 VARCHAREND=$(timestamp)
 echo "done"
 
+echo_ts "Performing transaction inserts..."
+TRANSACTIONSTART=$(timestamp)
+ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
+TRANSACTIONEND=$(timestamp)
+echo "done"
+
 echo
 echo "Facts:"
 echo "Number of rows inserted: ${ROWS}"
@@ -88,11 +103,14 @@ echo
 
 INTEGERTIME=$(echo ${INTEGEREND}-${INTEGERSTART}|bc -l)
 VARCHARTIME=$(echo ${VARCHAREND}-${VARCHARSTART}|bc -l)
+TRANSACTIONTIME=$(echo ${TRANSACTIONEND}-${TRANSACTIONSTART}|bc -l)
 
 INTEGERQPS=$(echo ${ROWS}/${INTEGERTIME}+0.5|bc -l|bc)
 VARCHARQPS=$(echo ${ROWS}/${VARCHARTIME}+0.5|bc -l|bc)
+TRANSACTIONQPS=$(echo ${ROWS}/${TRANSACTIONTIME}+0.5|bc -l|bc)
 
 printf "Integer inserts: %2.f sec (%2.f qps)\n" ${INTEGERTIME} ${INTEGERQPS}
 printf "Varchar inserts: %2.f sec (%2.f qps)\n" ${VARCHARTIME} ${VARCHARQPS}
+printf "Transaction inserts: %2.f sec (%2.f qps)\n" ${TRANSACTIONTIME} ${TRANSACTIONQPS}
 
-rm -f ${TMP} ${TMPINTEGER}_* ${TMPVARCHAR}_*
+rm -f ${TMP} ${TMPINTEGER}_* ${TMPVARCHAR}_* ${TMPTRANSACTION}_*
