@@ -35,7 +35,7 @@ echo "done"
 echo_ts "Creating tables..."
 mysql ${DB} -e "CREATE TABLE test_integer (id INTEGER AUTO_INCREMENT PRIMARY KEY, val INTEGER);"
 mysql ${DB} -e "CREATE TABLE test_varchar (id INTEGER AUTO_INCREMENT PRIMARY KEY, val VARCHAR(100));"
-mysql ${DB} -e "CREATE TABLE test_transaction (id VARCHAR(36) PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100));"
+mysql ${DB} -e "CREATE TABLE test_transaction (id VARCHAR(36) PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
 mysql ${DB} -e "CREATE TABLE test_update (id VARCHAR(36) PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
 echo "done"
 
