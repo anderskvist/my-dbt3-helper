@@ -6,6 +6,13 @@ CHUNKS=$((${PARALLEL}*10))
 PREPAREDSTATEMENTS=1 # 0 for off and above 0 for enabled
 UPDATEROWS=100
 
+while [ -n "${1}" ]; do
+        if [[ "${1}" =~ ^[[:alpha:]]+=[[:digit:]]+$ ]]; then
+                export ${1}
+        fi
+        shift
+done
+
 DB=simple
 
 RANDOM=$$ # Seed random generator with current PID
