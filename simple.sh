@@ -4,6 +4,7 @@ ROWS=100
 PARALLEL=10
 CHUNKS=$((${PARALLEL}*10))
 PREPAREDSTATEMENTS=1 # 0 for off and above 0 for enabled
+UPDATEROWS=100
 
 DB=simple
 
@@ -28,6 +29,7 @@ echo_ts "Creating tables..."
 mysql ${DB} -e "CREATE TABLE test_integer (id INTEGER AUTO_INCREMENT PRIMARY KEY, val INTEGER);"
 mysql ${DB} -e "CREATE TABLE test_varchar (id INTEGER AUTO_INCREMENT PRIMARY KEY, val VARCHAR(100));"
 mysql ${DB} -e "CREATE TABLE test_transaction (id INTEGER AUTO_INCREMENT PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100));"
+mysql ${DB} -e "CREATE TABLE test_update (id INTEGER AUTO_INCREMENT PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100));"
 echo "done"
 
 if [ ${PREPAREDSTATEMENTS} -ne 0 ]; then
@@ -65,8 +67,20 @@ for I in $(seq 1 ${ROWS}); do
 	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "SET @VAL_VARCHAR = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "INSERT INTO test_transaction (val_integer,val_varchar) VALUES (@VAL_INTEGER,@VAL_VARCHAR);"
+	if [ ${I} -le ${UPDATEROWS} ]; then
+	    echo "INSERT INTO test_update (val_integer,val_varchar) VALUES (@VAL_INTEGER,@VAL_VARCHAR);"
+	fi
 	echo "COMMIT;"
     } >> ${TMPTRANSACTION}_$((${I}%${CHUNKS}))
+
+    {
+	echo "START TRANSACTION;";
+	echo "SET @RANDOM = (SELECT r1.id FROM test_update as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_update)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "SET @VAL_VARCHAR = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "UPDATE test_update SET val_integer=@VAL_INTEGER,val_varchar=@VAL_VARCHAR WHERE id=@RANDOM;"
+	echo "COMMIT;"
+    } >> ${TMPUPDATE}_$((${I}%${CHUNKS}))
 done
 echo "done"
 
@@ -86,10 +100,16 @@ ls -1 ${TMPVARCHAR}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
 VARCHAREND=$(timestamp)
 echo "done"
 
-echo_ts "Performing transaction inserts..."
+echo_ts "Performing transaction inserts (also doing inserts for later update test) ..."
 TRANSACTIONSTART=$(timestamp)
 ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
 TRANSACTIONEND=$(timestamp)
+echo "done"
+
+echo_ts "Performing transaction updates..."
+UPDATESTART=$(timestamp)
+ls -1 ${TMPUPDATE}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
+UPDATEEND=$(timestamp)
 echo "done"
 
 echo
@@ -97,6 +117,7 @@ echo "Facts:"
 echo "Number of rows inserted: ${ROWS}"
 echo "Parallel inserts: ${PARALLEL}"
 echo "Number of chunks: ${CHUNKS}"
+echo "Rows updated: ${UPDATEROWS}"
 echo -n "Using prepared statements: "
 [[ ${PREPAREDSTATEMENTS} -ne 0 ]] && echo "true" || echo "false"
 echo
@@ -104,13 +125,16 @@ echo
 INTEGERTIME=$(echo ${INTEGEREND}-${INTEGERSTART}|bc -l)
 VARCHARTIME=$(echo ${VARCHAREND}-${VARCHARSTART}|bc -l)
 TRANSACTIONTIME=$(echo ${TRANSACTIONEND}-${TRANSACTIONSTART}|bc -l)
+UPDATETIME=$(echo ${UPDATEEND}-${UPDATESTART}|bc -l)
 
 INTEGERQPS=$(echo ${ROWS}/${INTEGERTIME}+0.5|bc -l|bc)
 VARCHARQPS=$(echo ${ROWS}/${VARCHARTIME}+0.5|bc -l|bc)
 TRANSACTIONQPS=$(echo ${ROWS}/${TRANSACTIONTIME}+0.5|bc -l|bc)
+UPDATEQPS=$(echo ${ROWS}/${UPDATETIME}+0.5|bc -l|bc)
 
 printf "Integer inserts: %2.f sec (%2.f qps)\n" ${INTEGERTIME} ${INTEGERQPS}
 printf "Varchar inserts: %2.f sec (%2.f qps)\n" ${VARCHARTIME} ${VARCHARQPS}
 printf "Transaction inserts: %2.f sec (%2.f qps)\n" ${TRANSACTIONTIME} ${TRANSACTIONQPS}
+printf "Transaction updates: %2.f sec (%2.f qps)\n" ${UPDATETIME} ${UPDATEQPS}
 
-rm -f ${TMP} ${TMPINTEGER}_* ${TMPVARCHAR}_* ${TMPTRANSACTION}_*
+rm -f ${TMP} ${TMPINTEGER}_* ${TMPVARCHAR}_* ${TMPTRANSACTION}_* ${TMPUPDATE}_* 
