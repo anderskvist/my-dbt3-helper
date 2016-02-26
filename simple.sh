@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROWS=100
+ROWS=10000
 PARALLEL=10
 CHUNKS=$((${PARALLEL}*10))
 PREPAREDSTATEMENTS=1 # 0 for off and above 0 for enabled
