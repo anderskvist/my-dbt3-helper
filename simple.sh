@@ -35,8 +35,8 @@ echo "done"
 echo_ts "Creating tables..."
 mysql ${DB} -e "CREATE TABLE test_integer (id INTEGER AUTO_INCREMENT PRIMARY KEY, val INTEGER);"
 mysql ${DB} -e "CREATE TABLE test_varchar (id INTEGER AUTO_INCREMENT PRIMARY KEY, val VARCHAR(100));"
-mysql ${DB} -e "CREATE TABLE test_transaction (id VARCHAR(36) PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
-mysql ${DB} -e "CREATE TABLE test_update (id VARCHAR(36) PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
+mysql ${DB} -e "CREATE TABLE test_transaction (id INTEGER PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
+mysql ${DB} -e "CREATE TABLE test_update (id INTEGER PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
 echo "done"
 
 if [ ${PREPAREDSTATEMENTS} -ne 0 ]; then
@@ -73,7 +73,7 @@ for I in $(seq 1 ${ROWS}); do
 	echo "START TRANSACTION;";
 	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "SET @VAL_VARCHAR = (SELECT val FROM test_varchar as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_varchar)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
-	echo "INSERT INTO test_transaction (id, val_integer,val_varchar) VALUES (UUID(),@VAL_INTEGER,@VAL_VARCHAR);"
+	echo "INSERT INTO test_transaction (id, val_integer,val_varchar) VALUES (UUID_SHORT(),@VAL_INTEGER,@VAL_VARCHAR);"
 	echo "COMMIT;"
     } >> ${TMPTRANSACTION}_$((${I}%${CHUNKS}))
 
