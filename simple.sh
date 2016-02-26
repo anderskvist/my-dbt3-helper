@@ -114,8 +114,8 @@ echo "done"
 
 echo
 echo "Facts:"
-echo "Number of rows inserted: ${ROWS}"
-echo "Parallel inserts: ${PARALLEL}"
+echo "Number of queries in each test: ${ROWS}"
+echo "Parallel queries: ${PARALLEL}"
 echo "Number of chunks: ${CHUNKS}"
 echo "Rows updated: ${UPDATEROWS}"
 echo -n "Using prepared statements: "
