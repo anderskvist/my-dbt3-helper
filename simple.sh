@@ -52,7 +52,7 @@ for I in $(seq 1 ${ROWS}); do
 	    echo "INSERT INTO test_integer (val) VALUES ('${RANDOM}');"
 	fi
     } >> ${TMPINTEGER}_$((${I}%${CHUNKS}))
-    
+
     {
 	if [ ${PREPAREDSTATEMENTS} -ne 0 ]; then
 	    echo "SET @a = '${TEXT}';"
@@ -67,9 +67,6 @@ for I in $(seq 1 ${ROWS}); do
 	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "SET @VAL_VARCHAR = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "INSERT INTO test_transaction (val_integer,val_varchar) VALUES (@VAL_INTEGER,@VAL_VARCHAR);"
-	if [ ${I} -le ${UPDATEROWS} ]; then
-	    echo "INSERT INTO test_update (val_integer,val_varchar) VALUES (@VAL_INTEGER,@VAL_VARCHAR);"
-	fi
 	echo "COMMIT;"
     } >> ${TMPTRANSACTION}_$((${I}%${CHUNKS}))
 
@@ -100,11 +97,14 @@ ls -1 ${TMPVARCHAR}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
 VARCHAREND=$(timestamp)
 echo "done"
 
-echo_ts "Performing transaction inserts (also doing inserts for later update test) ..."
+echo_ts "Performing transaction inserts..."
 TRANSACTIONSTART=$(timestamp)
 TRANSACTIONFAILS=$(ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | wc -l)
 TRANSACTIONEND=$(timestamp)
 echo "done"
+
+# manual copy of data to run updates against
+mysql simple -e "INSERT INTO test_update SELECT * FROM test_transaction LIMIT ${UPDATEROWS};"
 
 echo_ts "Performing transaction updates..."
 UPDATESTART=$(timestamp)
