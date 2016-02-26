@@ -102,13 +102,13 @@ echo "done"
 
 echo_ts "Performing transaction inserts (also doing inserts for later update test) ..."
 TRANSACTIONSTART=$(timestamp)
-ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
+TRANSACTIONFAILS=$(ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | wc -l)
 TRANSACTIONEND=$(timestamp)
 echo "done"
 
 echo_ts "Performing transaction updates..."
 UPDATESTART=$(timestamp)
-ls -1 ${TMPUPDATE}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB}
+UPDATEFAILS=$(ls -1 ${TMPUPDATE}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | wc -l)
 UPDATEEND=$(timestamp)
 echo "done"
 
@@ -134,7 +134,7 @@ UPDATEQPS=$(echo ${ROWS}/${UPDATETIME}+0.5|bc -l|bc)
 
 printf "Integer inserts: %2.f sec (%2.f qps)\n" ${INTEGERTIME} ${INTEGERQPS}
 printf "Varchar inserts: %2.f sec (%2.f qps)\n" ${VARCHARTIME} ${VARCHARQPS}
-printf "Transaction inserts: %2.f sec (%2.f qps)\n" ${TRANSACTIONTIME} ${TRANSACTIONQPS}
-printf "Transaction updates: %2.f sec (%2.f qps)\n" ${UPDATETIME} ${UPDATEQPS}
+printf "Transaction inserts: %2.f sec (%2.f qps | %d failed transactions)\n" ${TRANSACTIONTIME} ${TRANSACTIONQPS} ${TRANSACTIONFAILS}
+printf "Transaction updates: %2.f sec (%2.f qps | %d failed transactions)\n" ${UPDATETIME} ${UPDATEQPS} ${UPDATEFAILS}
 
 rm -f ${TMP} ${TMPINTEGER}_* ${TMPVARCHAR}_* ${TMPTRANSACTION}_* ${TMPUPDATE}_* 
