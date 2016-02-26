@@ -99,7 +99,7 @@ echo "done"
 
 echo_ts "Performing transaction inserts..."
 TRANSACTIONSTART=$(timestamp)
-TRANSACTIONFAILS=$(ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | wc -l)
+TRANSACTIONFAILS=$(ls -1 ${TMPTRANSACTION}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | grep "^ERROR .* transaction" | wc -l)
 TRANSACTIONEND=$(timestamp)
 echo "done"
 
@@ -108,7 +108,7 @@ mysql simple -e "INSERT INTO test_update SELECT * FROM test_transaction LIMIT ${
 
 echo_ts "Performing transaction updates..."
 UPDATESTART=$(timestamp)
-UPDATEFAILS=$(ls -1 ${TMPUPDATE}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | wc -l)
+UPDATEFAILS=$(ls -1 ${TMPUPDATE}_* | xargs -n 1 -P ${PARALLEL} ./mysql_file.sh ${DB} 2>&1 | grep "^ERROR .* transaction" | wc -l)
 UPDATEEND=$(timestamp)
 echo "done"
 
