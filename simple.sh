@@ -72,7 +72,7 @@ for I in $(seq 1 ${ROWS}); do
     {
 	echo "START TRANSACTION;";
 	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
-	echo "SET @VAL_VARCHAR = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "SET @VAL_VARCHAR = (SELECT val FROM test_varchar as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_varchar)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "INSERT INTO test_transaction (id, val_integer,val_varchar) VALUES (UUID(),@VAL_INTEGER,@VAL_VARCHAR);"
 	echo "COMMIT;"
     } >> ${TMPTRANSACTION}_$((${I}%${CHUNKS}))
@@ -81,7 +81,7 @@ for I in $(seq 1 ${ROWS}); do
 	echo "START TRANSACTION;";
 	echo "SET @RANDOM = (SELECT r1.id FROM test_update as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_update)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "SET @VAL_INTEGER = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
-	echo "SET @VAL_VARCHAR = (SELECT val FROM test_integer as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_integer)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
+	echo "SET @VAL_VARCHAR = (SELECT val FROM test_varchar as r1 JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM test_varchar)) AS id) AS r2 WHERE r1.id > r2.id ORDER BY r1.id ASC LIMIT 1);"
 	echo "UPDATE test_update SET val_integer=@VAL_INTEGER,val_varchar=@VAL_VARCHAR,updatecount=updatecount+1 WHERE id=@RANDOM;"
 	echo "COMMIT;"
     } >> ${TMPUPDATE}_$((${I}%${CHUNKS}))
