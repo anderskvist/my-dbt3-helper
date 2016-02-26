@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cat ${2} | mysql ${1}
+cat ${2} | mysql -f ${1}
