@@ -19,6 +19,8 @@ RANDOM=$$ # Seed random generator with current PID
 TMP=$(mktemp)
 TMPINTEGER="${TMP}_INTEGER"
 TMPVARCHAR="${TMP}_VARCHAR"
+TMPTRANSACTION="${TMP}_TRANSACTION"
+TMPUPDATE="${TMP}_UPDATE"
 
 function echo_ts () {
     echo -n "[$(date)] ${*}"
