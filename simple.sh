@@ -113,7 +113,7 @@ TRANSACTIONEND=$(timestamp)
 echo "done"
 
 # manual copy of data to run updates against
-mysql simple -e "INSERT INTO test_update SELECT * FROM test_transaction LIMIT ${UPDATEROWS};"
+mysql simple -e "INSERT INTO test_update (val_integer, val_varchar) SELECT val_integer, val_varchar FROM test_transaction LIMIT ${UPDATEROWS};"
 
 echo_ts "Performing transaction updates..."
 UPDATESTART=$(timestamp)
