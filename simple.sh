@@ -38,7 +38,7 @@ echo_ts "Creating tables..."
 mysql ${DB} -e "CREATE TABLE test_integer (id INTEGER AUTO_INCREMENT PRIMARY KEY, val INTEGER);"
 mysql ${DB} -e "CREATE TABLE test_varchar (id INTEGER AUTO_INCREMENT PRIMARY KEY, val VARCHAR(100));"
 mysql ${DB} -e "CREATE TABLE test_transaction (id BIGINT PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
-mysql ${DB} -e "CREATE TABLE test_update (id INTEGER PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
+mysql ${DB} -e "CREATE TABLE test_update (id INTEGER AUTO_INCREMENT PRIMARY KEY, val_integer INTEGER, val_varchar VARCHAR(100), updatecount INTEGER DEFAULT 0);"
 echo "done"
 
 if [ ${PREPAREDSTATEMENTS} -ne 0 ]; then
